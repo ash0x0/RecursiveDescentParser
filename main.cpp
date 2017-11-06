@@ -29,7 +29,7 @@ binaryTree<string, string> bst;
 
 void statement();
 void expression();
-void compoundstmt();
+void compoundStatement();
 
 void scan(){
     char ch;
@@ -50,8 +50,8 @@ void scan(){
     if(ch == '\n') line++;
 }
 
-void error(string token, string exp, int line) {
-    cout << "\n\nError\n\tLine:\t" << line << "\n\tExpected:\t" << exp << "\n\tFound:\t" << token << "\n"; 
+void syntaxError(string token, string exp, int line) {
+    cout << "\nError on line: " << line << "\nExpected: \"" << exp << "\", got: " << token << "\n"; 
     exit(0);
 }
 
@@ -61,10 +61,10 @@ void match(string s){
         cout << tokens.top() << " ";
         bst.add(s,"");
         scan();  
-    } else error(tokens.top(), s, line);
+    } else syntaxError(tokens.top(), s, line);
 }
 
-void typespecifier(){
+void valueType(){
     if(tokens.top() =="int") {
         match("int");
     } else if(tokens.top() =="float") {
@@ -72,12 +72,12 @@ void typespecifier(){
     } else if(tokens.top() =="void") {
         match("void");
     } else {
-        error(tokens.top(), "int | float | void", line);
+        syntaxError(tokens.top(), "int | float | void", line);
     }
 }
 
-void param(){
-    typespecifier();
+void parameter(){
+    valueType();
     match("id");
     if(tokens.top() == "[") {
         match("[");
@@ -85,60 +85,60 @@ void param(){
     }
 }
 
-void paramlist(){
-    param();
+void parameterListing(){
+    parameter();
     while(tokens.top() == ",") {
         match(",");
-        param();
+        parameter();
     }
 }
 
-void params(){
+void listParameter(){
     if(tokens.top() == "void") match("void");
-    if(tokens.top() == "int" || tokens.top() == "float") paramlist();
+    if(tokens.top() == "int" || tokens.top() == "float") parameterListing();
 }
 
-void vardeclarationtail(){
+void variableDeclarationEnd(){
     if(tokens.top() == ";") match(";");
     else if(tokens.top() == "[") {
         match("[");
         match("num");
         match("]");
         match(";");
-    } else error(tokens.top(), "; | [", line);
+    } else syntaxError(tokens.top(), "; | [", line);
 }
 
-void vardeclaration(){
-    typespecifier();
+void variableDeclaration(){
+    valueType();
     match("id");
-    vardeclarationtail();
+    variableDeclarationEnd();
 }
 
-void declarationlist(){
-    vardeclaration();
-    if(tokens.top() == "int" || tokens.top() == "float" || tokens.top() == "void") vardeclaration();
+void variableLising(){
+    variableDeclaration();
+    if(tokens.top() == "int" || tokens.top() == "float" || tokens.top() == "void") variableDeclaration();
 }
 
-void selectionstmttail(){
+void ifEnd(){
     if(tokens.top() =="else") {
         match("else");
         statement();
     } else if(tokens.top() == "}" || tokens.top() == "else" ||tokens.top() == ";" )
         return;
-    else error(tokens.top(), "else | }", line);
+    else syntaxError(tokens.top(), "else | }", line);
 }
 
-void multop(){
+void multiplication(){
     if(tokens.top() =="multop") {
         match("multop");
     } else if(tokens.top() =="backslashop") {
         match("backslashop");
     } else {
-        error(tokens.top(), "multop | backslashop", line);
+        syntaxError(tokens.top(), "multop | backslashop", line);
     }
 }
 
-void vartail(){
+void variableEnd(){
 
     if(tokens.top() =="[") {
         match("[");
@@ -154,12 +154,12 @@ void vartail(){
             || tokens.top() ==";")
         
             return;
-    else error(tokens.top(), "Var Tail", line);
+    else syntaxError(tokens.top(), "Var Tail", line);
 }
 
-void var(){
+void variable(){
     match("id");
-    vartail();
+    variableEnd();
 }
 
 void factor(){
@@ -168,72 +168,72 @@ void factor(){
         expression();
         match(")");
     } else if(tokens.top() == "num") match("num");
-    else if(tokens.top() == "id") var();
-    else error(tokens.top(), "( | num | id", line);
+    else if(tokens.top() == "id") variable();
+    else syntaxError(tokens.top(), "( | num | id", line);
 }
 
 void term(){
     factor();
     while((tokens.top() == "multop") || (tokens.top() == "backslashop")) {
         if(tokens.top() == "multop") {
-            multop();
+            multiplication();
             factor();
         } else if (tokens.top() == "backslashop") {
-            multop();
+            multiplication();
             factor();
         }
     }
 }
 
-void addop(){
+void additionSubtraction(){
     if(tokens.top() == "addop") match("addop");
     else if(tokens.top() ==  "subop") match("subop");
-    else error(tokens.top(), "addop | subop", line);
+    else syntaxError(tokens.top(), "addop | subop", line);
 }
 
-void additiveexpression(){
+void additionSubtractionSyntax(){
     term();
     while((tokens.top().compare("addop") == 0) || (tokens.top().compare("subop") == 0)) {
         if(tokens.top() ==  "addop") {
-            addop();
+            additionSubtraction();
             term();
         } else if(tokens.top() ==  "subop") {
-            addop();
+            additionSubtraction();
             term();
         }
     }
 }
 
-void relop(){
+void relational(){
     if(tokens.top() == "relop") match("relop");
-    else error(tokens.top(), "relop", line);
+    else syntaxError(tokens.top(), "relop", line);
 }
 
 void expression(){
-    additiveexpression();
+    additionSubtractionSyntax();
     while(tokens.top() == "relop") {
-        relop();
-        additiveexpression();
+        relational();
+        additionSubtractionSyntax();
     }
 }
 
-void selectionstmt(){
+void ifStatement(){
     match("if");
     match("(");
     expression();
     match(")");
     statement();
     match(";");
-    selectionstmttail();
+    ifEnd();
 }
 
-void assignmentstmt(){
-    var();
+void assignment(){
+    variable();
     match("assign");
     expression();
 }
 
-void iterationstmt(){
+void whileStatement(){
     match("while");
     match("(");
     expression();
@@ -242,35 +242,35 @@ void iterationstmt(){
 }
 
 void statement(){
-    if(tokens.top() == "id") assignmentstmt();
-    else if(tokens.top() == "{") compoundstmt();
-    else if(tokens.top() == "if") selectionstmt();
-    else if(tokens.top() == "while") iterationstmt();
-    else error(tokens.top(), "id | { | if | while", line);
+    if(tokens.top() == "id") assignment();
+    else if(tokens.top() == "{") compoundStatement();
+    else if(tokens.top() == "if") ifStatement();
+    else if(tokens.top() == "while") whileStatement();
+    else syntaxError(tokens.top(), "id | { | if | while", line);
 }
 
-void statementlist(){
+void statementListing(){
     if(tokens.top() == "}") return;
     else statement();
     while(tokens.top() == ";") {
         match(";");
-        statementlist();
+        statementListing();
     }
 }
 
-void compoundstmt(){
-    statementlist();
+void compoundStatement(){
+    statementListing();
 }
 
 void program(){
-    typespecifier();
+    valueType();
     match("id");
     match("(");
-    params();
+    listParameter();
     match(")");
     match("{");
-    declarationlist();
-    compoundstmt();
+    variableLising();
+    compoundStatement();
     match("}");
 }
 
