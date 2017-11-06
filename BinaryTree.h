@@ -18,15 +18,15 @@ template <class keyType, class dataType>
 class binaryTree {   
     public:
         binaryTree();  
-        bool insert (const keyType &, const dataType &);
-        bool empty() const;
-        bool search (const keyType &) const;
-        bool retrieve (const keyType &, dataType &) const;
+        bool add (const keyType &, const dataType &);
+        bool clear() const;
+        bool find (const keyType &) const;
+        bool get (const keyType &, dataType &) const;
         void traverse() const;
         void preorder () const;
-        void levelorder () const;
-        void graph() const;
-        void remove (const keyType &);
+        void inorder () const;
+        void draw() const;
+        void deleteItem (const keyType &);
     private:
         class treeNode {
             public:
@@ -37,12 +37,12 @@ class binaryTree {
         }; 
         typedef treeNode * NodePointer;
         NodePointer root;
-	bool search2 (NodePointer , const keyType &) const;
-	bool retrieve2 (NodePointer , const keyType & , dataType &) const;
-	bool insert2 (NodePointer &, const keyType &, const dataType &);
-        void traverse2 (NodePointer ) const; 
-        void graph2 (int ,NodePointer ) const;
-        void parentSearch 
+	bool mFind (NodePointer , const keyType &) const;
+	bool mGet (NodePointer , const keyType & , dataType &) const;
+	bool mAdd (NodePointer &, const keyType &, const dataType &);
+        void mTraverse (NodePointer ) const; 
+        void mDraw (int ,NodePointer ) const;
+        void findParent 
         ( const keyType &k, bool &found, NodePointer &locptr, NodePointer &parent) const;
 }; 
 

@@ -59,7 +59,7 @@ void match(string s){
 
     if(tokens.top() == s) {
         cout << tokens.top() << " ";
-        bst.insert(s,"");
+        bst.add(s,"");
         scan();  
     } else error(tokens.top(), s, line);
 }
