@@ -28,22 +28,22 @@ class binaryTree {
         void draw() const;
         void deleteItem (const keyType &);
     private:
-        class treeNode {
+        class node {
             public:
-                keyType key; 		
+                keyType key;
                 dataType data;		
-                treeNode *left;		
-                treeNode *right;	
+                node* left;		
+                node* right;	
         }; 
-        typedef treeNode * NodePointer;
-        NodePointer root;
-	bool mFind (NodePointer , const keyType &) const;
-	bool mGet (NodePointer , const keyType & , dataType &) const;
-	bool mAdd (NodePointer &, const keyType &, const dataType &);
-        void mTraverse (NodePointer ) const; 
-        void mDraw (int ,NodePointer ) const;
+        typedef node * pointer;
+        pointer root;
+	bool mFind (pointer , const keyType &) const;
+	bool mGet (pointer , const keyType & , dataType &) const;
+	bool mAdd (pointer &, const keyType &, const dataType &);
+        void mTraverse (pointer ) const; 
+        void mDraw (int ,pointer ) const;
         void findParent 
-        ( const keyType &k, bool &found, NodePointer &locptr, NodePointer &parent) const;
+        ( const keyType &k, bool &found, pointer &locptr, pointer &parent) const;
 }; 
 
 #endif 

@@ -26,7 +26,7 @@ bool binaryTree<keyType, dataType>::find(const keyType &k) const {
 } 
 
 template <class keyType, class dataType>
-bool binaryTree<keyType, dataType>::mFind (NodePointer aRoot, const keyType &k) const {
+bool binaryTree<keyType, dataType>::mFind (pointer aRoot, const keyType &k) const {
     if (aRoot == NULL) return false;
     else if (k == aRoot->key) return true;
     else if (k < aRoot->key) return mFind(aRoot->left, k);
@@ -39,7 +39,7 @@ bool binaryTree<keyType, dataType>::get(const keyType &k, dataType &d) const {
 } 
 
 template <class keyType, class dataType>
-bool binaryTree<keyType, dataType>::mGet(NodePointer aRoot, const keyType &k, dataType &d) const {
+bool binaryTree<keyType, dataType>::mGet(pointer aRoot, const keyType &k, dataType &d) const {
     if (aRoot == NULL) return false;
     else if (k == aRoot->key){ 
         d = aRoot->data; 
@@ -55,9 +55,9 @@ bool binaryTree<keyType, dataType>::add(const keyType &k, const dataType &d) {
 } 
 
 template <class keyType, class dataType>
-bool binaryTree<keyType, dataType>::mAdd(NodePointer &aRoot, const keyType &k, const dataType &d) {
+bool binaryTree<keyType, dataType>::mAdd(pointer &aRoot, const keyType &k, const dataType &d) {
     if (aRoot == NULL) { 
-      aRoot = new treeNode;
+      aRoot = new node;
       aRoot->left = NULL;
       aRoot->right = NULL;
       aRoot->key = k;
@@ -80,7 +80,7 @@ void binaryTree<keyType, dataType>::traverse() const {
 } 
 
 template <class keyType, class dataType>
-void binaryTree<keyType, dataType>::mTraverse (NodePointer aRoot) const {
+void binaryTree<keyType, dataType>::mTraverse (pointer aRoot) const {
     if (aRoot != NULL) { 
         mTraverse (aRoot->left);
         cout << aRoot->key << " " << aRoot->data << endl;
@@ -90,8 +90,8 @@ void binaryTree<keyType, dataType>::mTraverse (NodePointer aRoot) const {
 
 template <class keyType, class dataType>
 void binaryTree<keyType, dataType>::preorder () const {
-    stack<NodePointer> s;
-    NodePointer t = root;
+    stack<pointer> s;
+    pointer t = root;
     s.push(t);
     int i=0;
     while(!s.empty()) {
@@ -113,8 +113,8 @@ void binaryTree<keyType, dataType>::preorder () const {
 
 template <class keyType, class dataType>
 void binaryTree<keyType, dataType>::inorder () const {
-    queue<NodePointer> q;
-    NodePointer t = root;
+    queue<pointer> q;
+    pointer t = root;
     q.push(t);
     while(!q.empty()) {
         t=q.front(); q.pop(); cout << t->key << endl;
@@ -129,7 +129,7 @@ void binaryTree<keyType, dataType>::draw() const {
 }
 
 template <class keyType, class dataType>
-void binaryTree<keyType, dataType>::mDraw(int indent, NodePointer aRoot) const {
+void binaryTree<keyType, dataType>::mDraw(int indent, pointer aRoot) const {
     if (aRoot != NULL) { 
         mDraw (indent+8, aRoot->right);
         cout << setw(indent) << " " << aRoot->key << endl;
@@ -140,15 +140,15 @@ void binaryTree<keyType, dataType>::mDraw(int indent, NodePointer aRoot) const {
 template <class keyType, class dataType>
 void binaryTree<keyType, dataType>::deleteItem (const keyType &k) {
     bool found;
-    NodePointer x,parent;
+    pointer x,parent;
     findParent (k, found, x, parent);
     if (!found) {
-        cout << "Item not in BST\n";
+        cout << "Not found in tree" << endl;
         return;
     }
 
     if ((x->left != NULL)&&(x->right != NULL)) {
-        NodePointer xSucc = x->right;
+        pointer xSucc = x->right;
         parent = x;
         while (xSucc->left != NULL) { 
             parent = xSucc; 
@@ -159,7 +159,7 @@ void binaryTree<keyType, dataType>::deleteItem (const keyType &k) {
         x = xSucc;
     }
 
-    NodePointer subtree = x->left; 
+    pointer subtree = x->left; 
     if (subtree == NULL) subtree = x->right;
     if (parent == NULL) root = subtree; 
     else if (parent->left == x) parent->left = subtree;
@@ -168,7 +168,7 @@ void binaryTree<keyType, dataType>::deleteItem (const keyType &k) {
 } 
 
 template <class keyType, class dataType>
-void binaryTree<keyType, dataType>::findParent (const keyType &k, bool &found, NodePointer &locptr, NodePointer &parent) const {
+void binaryTree<keyType, dataType>::findParent (const keyType &k, bool &found, pointer &locptr, pointer &parent) const {
     locptr = root;  parent = NULL; found = false;
     while (!found && locptr != NULL) {
         if (k < locptr->key) {
