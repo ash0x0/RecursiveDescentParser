@@ -1,0 +1,2 @@
+
+void id ( void ) { int id ; int id ; if ( id relop num ) id assign id ; else id assign id multop id ; } 

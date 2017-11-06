@@ -358,7 +358,7 @@ void program(){
 }
 
 int main(){
-	input.open("output4.txt");
+	input.open("output.txt");
 	scan();
 	program();
 	cout << "\n\n\n\n\n";
