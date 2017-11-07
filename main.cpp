@@ -11,6 +11,8 @@
  * Created on November 2, 2017, 7:22 PM
  */
 
+// This file is build using the EBNF in the report, it is a direct one to one implementation
+
 #include <iostream>
 #include <fstream>
 #include <stack>
@@ -25,11 +27,11 @@ stack<string> tokens;
 ifstream input;
 int line = 1;
 
-binaryTree<string, string> bst;
+binaryTree<string, string> parseBinaryTree;
 
 void statement();
 void expression();
-void compoundStatement();
+void compoundStmt();
 
 void scan(){
     char ch;
@@ -59,107 +61,118 @@ void match(string s){
 
     if(tokens.top() == s) {
         cout << tokens.top() << " ";
-        bst.add(s,"");
+        parseBinaryTree.add(s,"");
         scan();  
     } else syntaxError(tokens.top(), s, line);
 }
 
-void valueType(){
-    if(tokens.top() =="int") {
-        match("int");
-    } else if(tokens.top() =="float") {
-        match("float");
-    } else if(tokens.top() =="void") {
-        match("void");
+void typeSpecifier(){
+    if(tokens.top() =="INTEGER") {
+        match("INTEGER");
+    } else if(tokens.top() =="FLOAT") {
+        match("FLOAT");
+    } else if(tokens.top() =="VOID") {
+        match("VOID");
     } else {
-        syntaxError(tokens.top(), "int | float | void", line);
+        syntaxError(tokens.top(), "INTEGER | FLOAT | VOID", line);
     }
 }
 
-void parameter(){
-    valueType();
-    match("id");
+void param(){
+    typeSpecifier();
+    match("IDENTIFIER");
     if(tokens.top() == "[") {
         match("[");
         match("]");
     }
 }
 
-void parameterListing(){
-    parameter();
-    while(tokens.top() == ",") {
-        match(",");
-        parameter();
+void paramList(){
+    param();
+    while(tokens.top() == "COMMA") {
+        match("COMMA");
+        param();
     }
 }
 
-void listParameter(){
-    if(tokens.top() == "void") match("void");
-    if(tokens.top() == "int" || tokens.top() == "float") parameterListing();
+void params(){
+    if(tokens.top() == "VOID") match("VOID");
+    if(tokens.top() == "INTEGER" || tokens.top() == "FLOAT") paramList();
 }
 
-void variableDeclarationEnd(){
-    if(tokens.top() == ";") match(";");
+void varDeclarationTail(){
+    if(tokens.top() == "SEMI") match("SEMI");
     else if(tokens.top() == "[") {
         match("[");
-        match("num");
+        match("NUMBER");
         match("]");
-        match(";");
-    } else syntaxError(tokens.top(), "; | [", line);
+        match("SEMI");
+    } else syntaxError(tokens.top(), "SEMI | [", line);
 }
 
-void variableDeclaration(){
-    valueType();
-    match("id");
-    variableDeclarationEnd();
+void varDeclaration(){
+    typeSpecifier();
+    match("IDENTIFIER");
+    varDeclarationTail();
 }
 
-void variableLising(){
-    variableDeclaration();
-    if(tokens.top() == "int" || tokens.top() == "float" || tokens.top() == "void") variableDeclaration();
+void declarationList(){
+    if (tokens.top() == "IF") return;
+    varDeclaration();
+    if(tokens.top() == "INTEGER" || tokens.top() == "FLOAT" || tokens.top() == "VOID") varDeclaration();
 }
 
-void ifEnd(){
-    if(tokens.top() =="else") {
-        match("else");
+void args() {
+    if(tokens.top() == "INTEGER" || tokens.top() == "FLOAT") paramList();
+}
+
+void selectionStmt(){
+    if(tokens.top() =="ELSE") {
+        match("ELSE");
         statement();
-    } else if(tokens.top() == "}" || tokens.top() == "else" ||tokens.top() == ";" )
+    } else if(tokens.top() == "}" || tokens.top() == "ELSE" ||tokens.top() == "SEMI")
         return;
-    else syntaxError(tokens.top(), "else | }", line);
+    else if (tokens.top() == "RETURN") {
+        match("RETURN");
+        match("IDENTIFIER");
+        if (tokens.top() == "SEMI") match("SEMI");
+        else if (tokens.top() == "(") {
+            match("(");
+            match(")");
+            match("SEMI");
+        }
+    }
+    else syntaxError(tokens.top(), "ELSE | }", line);
 }
 
-void multiplication(){
-    if(tokens.top() =="multop") {
-        match("multop");
-    } else if(tokens.top() =="backslashop") {
-        match("backslashop");
+void mulOp(){
+    if(tokens.top() =="MULOP") {
+        match("MULOP");
     } else {
-        syntaxError(tokens.top(), "multop | backslashop", line);
+        syntaxError(tokens.top(), "MULOP", line);
     }
 }
 
-void variableEnd(){
+void varTail(){
 
     if(tokens.top() =="[") {
         match("[");
         expression();
         match("]");
 
-    } else if(tokens.top() =="assign" 
-            || tokens.top() =="multop" 
-            || tokens.top() =="backslashop" 
-            || tokens.top() =="addop" 
-            || tokens.top() =="subop" 
-            || tokens.top() =="relop" 
-            || tokens.top() ==";")
+    } else if(tokens.top() =="ASSIGN" 
+            || tokens.top() =="MULOP"
+            || tokens.top() =="ADDOP"
+            || tokens.top() =="RELOP" 
+            || tokens.top() =="SEMI")
         
             return;
     else syntaxError(tokens.top(), "Var Tail", line);
 }
 
-void variable(){
-    match("id");
-    variableEnd();
+void var(){
+    match("IDENTIFIER");
+    varTail();
 }
 
 void factor(){
@@ -167,110 +180,111 @@ void factor(){
         match("(");
         expression();
         match(")");
-    } else if(tokens.top() == "num") match("num");
-    else if(tokens.top() == "id") variable();
-    else syntaxError(tokens.top(), "( | num | id", line);
+    } else if(tokens.top() == "NUMBER") match("NUMBER");
+    else if(tokens.top() == "IDENTIFIER") var();
+    else syntaxError(tokens.top(), "( | NUMBER | IDENTIFIER", line);
 }
 
 void term(){
     factor();
-    while((tokens.top() == "multop") || (tokens.top() == "backslashop")) {
-        if(tokens.top() == "multop") {
-            multiplication();
-            factor();
-        } else if (tokens.top() == "backslashop") {
-            multiplication();
+    while((tokens.top() == "MULOP")) {
+        if(tokens.top() == "MULOP") {
+            mulOp();
             factor();
         }
     }
 }
 
-void additionSubtraction(){
-    if(tokens.top() == "addop") match("addop");
-    else if(tokens.top() ==  "subop") match("subop");
-    else syntaxError(tokens.top(), "addop | subop", line);
+void addOp(){
+    if(tokens.top() == "ADDOP") match("ADDOP");
+    else syntaxError(tokens.top(), "ADDOP", line);
 }
 
-void additionSubtractionSyntax(){
+void additiveExpression(){
     term();
-    while((tokens.top().compare("addop") == 0) || (tokens.top().compare("subop") == 0)) {
-        if(tokens.top() ==  "addop") {
-            additionSubtraction();
-            term();
-        } else if(tokens.top() ==  "subop") {
-            additionSubtraction();
+    while((tokens.top().compare("ADDOP") == 0)) {
+        if(tokens.top() ==  "ADDOP") {
+            addOp();
             term();
         }
     }
 }
 
-void relational(){
-    if(tokens.top() == "relop") match("relop");
-    else syntaxError(tokens.top(), "relop", line);
+void relop(){
+    if(tokens.top() == "RELOP") match("RELOP");
+    else syntaxError(tokens.top(), "RELOP", line);
 }
 
 void expression(){
-    additionSubtractionSyntax();
-    while(tokens.top() == "relop") {
-        relational();
-        additionSubtractionSyntax();
+    additiveExpression();
+    while(tokens.top() == "RELOP") {
+        relop();
+        additiveExpression();
     }
 }
 
-void ifStatement(){
-    match("if");
+void selectionSmt(){
+    match("IF");
     match("(");
     expression();
     match(")");
     statement();
-    match(";");
-    ifEnd();
+    if (tokens.top() == "SEMI") match("SEMI");
+    else if (tokens.top() == "ELSE") match ("ELSE");
+    selectionStmt();
 }
 
-void assignment(){
-    variable();
-    match("assign");
+void assignmentStmt(){
+    var();
+    match("ASSIGN");
     expression();
 }
 
-void whileStatement(){
-    match("while");
+void iterationStmt(){
+    match("WHILE");
     match("(");
     expression();
     match(")");
     statement();
+}
+
+void returnStmt(){
+    match("RETURN");
+    match("IDENTIFIER");
+    match("SEMI");
 }
 
 void statement(){
-    if(tokens.top() == "id") assignment();
-    else if(tokens.top() == "{") compoundStatement();
-    else if(tokens.top() == "if") ifStatement();
-    else if(tokens.top() == "while") whileStatement();
-    else syntaxError(tokens.top(), "id | { | if | while", line);
+    if(tokens.top() == "IDENTIFIER") assignmentStmt();
+    else if(tokens.top() == "{") compoundStmt();
+    else if(tokens.top() == "IF") selectionSmt();
+    else if(tokens.top() == "WHILE") iterationStmt();
+    else if (tokens.top() == "RETURN") returnStmt();
+    else syntaxError(tokens.top(), "IDENTIFIER | { | IF | WHILE", line);
 }
 
-void statementListing(){
+void statementList(){
     if(tokens.top() == "}") return;
     else statement();
-    while(tokens.top() == ";") {
-        match(";");
-        statementListing();
+    while(tokens.top() == "SEMI") {
+        match("SEMI");
+        statementList();
     }
 }
 
-void compoundStatement(){
-    statementListing();
+void compoundStmt(){
+    statementList();
 }
 
 void program(){
-    valueType();
-    match("id");
+    typeSpecifier();
+    match("IDENTIFIER");
     match("(");
-    listParameter();
+    params();
     match(")");
     match("{");
-    variableLising();
-    compoundStatement();
+    declarationList();
+    compoundStmt();
     match("}");
 }
 
@@ -278,6 +292,6 @@ int main(){
     input.open("output.txt");
     scan();
     program();
-    cout << "\n\n\n\n\n";
-    bst.preorder();
+    cout << endl;
+    parseBinaryTree.preorder();
 }
